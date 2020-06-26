@@ -12,25 +12,25 @@ import java.util.Random;
 // Klasa generowanie pozwalająca nam w oknie odbiorcy na wygenerowanie par kluczy
 class generowanie
 {
-    BigInteger p_tym, q_tym, fi_tym, e_tym, d_tym, N_tym;
+    BigInteger p_temp, q_temp, fi_temp, e_temp, d_temp, N_temp;
     generowanie()
     {
         Random random = new SecureRandom();
 
-        p_tym = BigInteger.probablePrime(1024,random);
-        q_tym = BigInteger.probablePrime(1024,random);
+        p_temp = BigInteger.probablePrime(1024,random);
+        q_temp = BigInteger.probablePrime(1024,random);
 
-        N_tym = p_tym.multiply(q_tym);
+        N_temp = p_temp.multiply(q_temp);
 
-        fi_tym = p_tym.subtract(BigInteger.valueOf(1)).multiply(q_tym.subtract(BigInteger.valueOf(1)));
+        fi_temp = p_temp.subtract(BigInteger.valueOf(1)).multiply(q_temp.subtract(BigInteger.valueOf(1)));
 
-        e_tym = fi_tym.subtract(BigInteger.valueOf(1));
-        while(nwd(e_tym,fi_tym).compareTo(BigInteger.valueOf(1)) != 0)
+        e_temp = fi_temp.subtract(BigInteger.valueOf(1));
+        while(nwd(e_temp,fi_temp).compareTo(BigInteger.valueOf(1)) != 0)
         {
-            e_tym = e_tym.subtract(BigInteger.valueOf(1));
+            e_temp = e_temp.subtract(BigInteger.valueOf(1));
         }
 
-        d_tym = e_tym.modInverse(fi_tym);
+        d_temp = e_temp.modInverse(fi_temp);
     }
 
     static BigInteger nwd(BigInteger test, BigInteger fi)
@@ -51,7 +51,7 @@ class generowanie
 // klasa szyfrowanie pozwalająca w oknie szyfrowania na szyfrowanie wiadomości
 class Szyfrowanie
 {
-    BigInteger N, e, mnoznik, wynik_sz, wartosc;
+    BigInteger N, e, multiplier, encryption, value;
 
     public String[] getNapis()
     {
@@ -66,24 +66,24 @@ class Szyfrowanie
         e = new BigInteger(napis[2]);
         N = new BigInteger(napis[1]);
 
-        mnoznik = BigInteger.valueOf(256);
-        wartosc = BigInteger.valueOf(0);
+        multiplier = BigInteger.valueOf(256);
+        value = BigInteger.valueOf(0);
 
         for(int i=0; i<napis[0].length(); i++)
         {
-            wartosc = wartosc.multiply(mnoznik).add(BigInteger.valueOf(napis[0].charAt(i)));
+            value = value.multiply(multiplier).add(BigInteger.valueOf(napis[0].charAt(i)));
         }
 
-        wynik_sz = wartosc;
+        encryption = value;
 
-        wynik_sz = wynik_sz.modPow(e,N);
+        encryption = encryption.modPow(e,N);
     }
 }
 
 //No i klasa Odszyfrowanie pozwalająca na odszyfrowanie naszej wiadomości
 class Odszyfrowanie
 {
-    BigInteger wynik_de, d, N, mnoznik, wartosc, znak, wynik_sz;
+    BigInteger decryption, d, N, multiplier, value, sign, encryption;
     String napis ="";
 
     public String[] getNapis()
@@ -95,21 +95,21 @@ class Odszyfrowanie
     Odszyfrowanie()
     {
         String[] napisy = getNapis();
-        wynik_sz = new BigInteger(napisy[0]);
+        encryption = new BigInteger(napisy[0]);
         d = new BigInteger(napisy[1]);
         N = new BigInteger(napisy[2]);
 
-        wynik_de = wynik_sz.modPow(d,N);
+        decryption = encryption.modPow(d,N);
 
-        mnoznik = BigInteger.valueOf(256);
-        wartosc = BigInteger.valueOf(0);
-        wartosc = wynik_de;
+        multiplier = BigInteger.valueOf(256);
+        value = BigInteger.valueOf(0);
+        value = decryption;
 
-        while(wartosc.compareTo(BigInteger.valueOf(0)) != 0)
+        while(value.compareTo(BigInteger.valueOf(0)) != 0)
         {
-            znak = wartosc.mod(mnoznik);
-            napis = (char) znak.intValue() + napis;
-            wartosc = wartosc.subtract(znak).divide(mnoznik);
+            sign = value.mod(multiplier);
+            napis = (char) sign.intValue() + napis;
+            value = value.subtract(sign).divide(multiplier);
         }
 
     }
@@ -120,7 +120,7 @@ public class kodowanie extends JFrame implements ActionListener
     //utworzenie potrzebnych nam komponentów oraz ustawienie ich w oknie
     // (wiem że trochę chaotycznie, ale sam się nie spodziewałem że tyle tego będzie).
 
-    JFrame okno;
+    JFrame frame;
     JPanel szyfr, odszyfr, toolbar, home;
     JButton sz, odsz, szyfruj, odszyfruj, generuj;
     CardLayout c;
@@ -134,18 +134,18 @@ public class kodowanie extends JFrame implements ActionListener
 
     kodowanie()
     {
-        okno =  new JFrame("Szyfrowanie i odszyfrowanie RSA");
+        frame =  new JFrame("Szyfrowanie i odszyfrowanie RSA");
 
         szyfr = new JPanel();
         odszyfr = new JPanel();
         toolbar = new JPanel();
         home = new JPanel();
 
-        infoszyfr = new JLabel("Podaj ciąg znaków do zaszyfrowania:");
+        infoszyfr = new JLabel("Podaj ciąg signów do zaszyfrowania:");
         podajlicz= new JLabel("Podaj liczbę do odszyfrowania:");
         podajN = new JLabel("N:");
         podajd = new JLabel("d:");
-        odszyfrowane = new JLabel("Odszyfrowany ciąg znaków:");
+        odszyfrowane = new JLabel("Odszyfrowany ciąg signów:");
         oddajN = new JLabel("Podaj N od odbiorcy:");
         oddaje = new JLabel("Podaj e od odbiorcy:");
         oddajSzyfr = new JLabel("Szyfr:");
@@ -275,19 +275,19 @@ public class kodowanie extends JFrame implements ActionListener
         szyfr.add(oSz);
 
 
-        okno.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         home.setLayout(c);
         home.add(szyfr,"1");
         home.add(odszyfr,"2");
         c.show(home, "2");
-        okno.add(toolbar);
-        okno.add(home);
+        frame.add(toolbar);
+        frame.add(home);
 
-        okno.setSize(600,500);
-        okno.setLayout(null);
-        okno.setResizable(false);
-        okno.setVisible(true);
+        frame.setSize(600,500);
+        frame.setLayout(null);
+        frame.setResizable(false);
+        frame.setVisible(true);
     }
 
 
@@ -301,13 +301,13 @@ public class kodowanie extends JFrame implements ActionListener
         if(source == sz)
         {
             c.show(home, "1");
-            okno.setTitle("Szyfrowanie");
+            frame.setTitle("Szyfrowanie");
         }
 
         if(source == odsz)
         {
             c.show(home, "2");
-            okno.setTitle("Odszyfrowanie");
+            frame.setTitle("Odszyfrowanie");
         }
 
         try
@@ -315,7 +315,7 @@ public class kodowanie extends JFrame implements ActionListener
             if (source == szyfruj) {
                 Szyfrowanie zaszyfrowane = new Szyfrowanie();
 
-                oSz.setText(String.valueOf(zaszyfrowane.wynik_sz));
+                oSz.setText(String.valueOf(zaszyfrowane.encryption));
 
                 informacjasz.setText("<html>Wygenerowany szyfr przekaż do okna Odszyfrowanie</html>");
                 informacjasz.setVisible(true);
@@ -346,9 +346,9 @@ public class kodowanie extends JFrame implements ActionListener
         {
             generowanie sz = new generowanie();
 
-            lN.setText(String.valueOf(sz.N_tym));
-            ld.setText(String.valueOf(sz.d_tym));
-            le.setText(String.valueOf(sz.e_tym));
+            lN.setText(String.valueOf(sz.N_temp));
+            ld.setText(String.valueOf(sz.d_temp));
+            le.setText(String.valueOf(sz.e_temp));
 
             informacjosz.setText("<html>Wygenerowane klucze e i N przekaż do okna szyfrowania, aby móc zaszyfrować wiadomość." +
                     " Klucz d jest twój, nie ujawniaj go nikomu.</html>");
