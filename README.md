@@ -1,5 +1,5 @@
 # Zadania-specjalne-Java
-Zadania specjalne na zajęcia u prof. Sokołowskiego
+Zadania specjalne na zajęcia z programowania obiektowego
 
 Zawiera m.in.:
 - Kodowanie i dekodowanie rsa,
